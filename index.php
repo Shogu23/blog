@@ -15,8 +15,7 @@
   <form class="form-inline">
     <button class="btn btn-sm btn-outline-secondary" type="button"><a href="/blog/utilisateurs/index.php">Inscription</a></button>
     <button class="btn btn-sm btn-outline-secondary" type="button"><a href="/blog/categories/index.php">Categories</a></button>
-    <button class="btn btn-sm btn-outline-secondary" type="button">Connexion</button>
-    <button class="btn btn-sm btn-outline-secondary" type="button">Smaller button</button>
+    <button class="btn btn-sm btn-outline-secondary" type="button"><a href="/blog/utilisateurs/connexion.php">Connexion</a></button>
   </form>
 </nav>
     <h1>Bienvenu sur votre bLog</h1>

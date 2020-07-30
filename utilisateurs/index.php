@@ -1,4 +1,5 @@
 <?php
+require_once '../inc/header.php';
 // On se connecte a la base de données
 require_once '../inc/connect.php';
 
