@@ -9,12 +9,25 @@ if(!empty($_POST)){
         isset($_POST['formnom']) && !empty($_POST['formnom'])
         && isset($_POST['formmail']) && !empty($_POST['formmail'])
         && isset($_POST['formpass']) && !empty($_POST['formpass'])
+        && isset($_POST['formpassverif']) && !empty($_POST['formpassverif'])
     ){
-        //TOUS les champs sont valides (strip_tags() = No balises, htmlspechar = no <>, htmlentities = no <> no "" )
+        // strip_tags pour empecher les injections de JS
         $nomusers = strip_tags($_POST['formnom']);
-        $mailusers = strip_tags($_POST['formmail']);
-        $passusers = ($_POST['formpass']);
-
+        if(!filter_var($_POST['formmail'], FILTER_VALIDATE_EMAIL)){
+            die('email invalide');
+            header ('Location: index.php');
+        }else{
+            $mailusers = $_POST['formmail'];
+        }
+        //On verifie que les mots de pass sont identiques
+        if($_POST['formpass'] != $_POST['formpassverif']){
+            die('Mots de pass différents');
+            header('Location: index.php');
+        }else{
+            // On chiffre le mdp
+            $passusers = password_hash($_POST['formpass'], PASSWORD_ARGON2ID);
+        }
+        
         // On ecrit la requete
         $sql = "INSERT INTO `users` (`email`, `password`, `nickname`) VALUES (:mailusers, :password, :nomusers); ";
         
@@ -24,14 +37,18 @@ if(!empty($_POST)){
         // On injecte les valeurs dans les paramètres
         $query->bindValue(':nomusers', $nomusers, PDO::PARAM_STR);;
         $query->bindValue(':mailusers', $mailusers, PDO::PARAM_STR);;
-        $query->bindValue(':password', password_hash($passusers, PASSWORD_DEFAULT), PDO::PARAM_STR);;
+        $query->bindValue(':password', $passusers, PDO::PARAM_STR);;
+
+
 
         // On execute la requête
         $query->execute();
     }else{
         // Au moins 1 champs est invalide
-        $erreur = "Le formulaire est incomplet";
+        $erreur = 'Le formulaire est incomplet';
+        echo "<p>$erreur</p>";
     }
+    
  
 }
 
@@ -87,7 +104,7 @@ $liste = $query->fetchall(PDO::FETCH_ASSOC);
         </tbody>
     </table>
     <form method="post">
-        <h2>Ajouter un utilisateur</h2>
+        <h2>Inscription</h2>
         <div>
             <label for="Name">Pseudo</label>
             <input type="text" id="Name" name="formnom">
@@ -99,6 +116,10 @@ $liste = $query->fetchall(PDO::FETCH_ASSOC);
         <div>
             <label for="Passwrd">Mot de pass</label>
             <input type="password" id="Passwrd" name="formpass">
+        </div>
+        <div>
+            <label for="VerifPasswrd">Mot de pass</label>
+            <input type="password" id="VerifPasswrd" name="formpassverif">
         </div>
         <div>
             <button>Ajouter</button>
