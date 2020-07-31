@@ -3,9 +3,17 @@ require_once '../inc/header.php';
 
 require_once '../inc/connect.php';
 
+// Transforme une STRING ( chaine de carac "json" en tableau PHP )
+
+
 if(!isset($_SESSION['user'])){
     header('Location:'.URL.'/utilisateurs/connexion.php');
 }
+$roles = json_decode($_SESSION['user']['roles']);
+if(!in_array("ROLE_ADMIN", $roles)){
+        header('Location:'.URL);
+}
+
 
 $sql = "SELECT * FROM `categories` ORDER BY `name` ASC";
 
