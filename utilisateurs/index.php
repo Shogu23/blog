@@ -3,40 +3,92 @@ require_once '../inc/header.php';
 // On se connecte a la base de données
 require_once '../inc/connect.php';
 
-// Si tu veux ne selectionner que certaines parties a afficher
-$sql = "SELECT a.*, c.`name`, u.`nickname` FROM `articles` a 
-        LEFT JOIN `categories` c ON a.`categories_id` = c.`id` 
-        LEFT JOIN `users` u ON a.`users_id` = u.`id`";
+//On ajoute le nouveau client, AVANT d'aller chercher la liste ( le $sql = SELECT.... juste apres)
+if(!empty($_POST)){
+    // POST n'est pas vide, on vérifie TOUS les champs obligatoires
+    if(
+        isset($_POST['formnom']) && !empty($_POST['formnom'])
+        && isset($_POST['formmail']) && !empty($_POST['formmail'])
+        && isset($_POST['formpass']) && !empty($_POST['formpass'])
+        && isset($_POST['formpassverif']) && !empty($_POST['formpassverif'])
+    ){
+        // strip_tags pour empecher les injections de JS
+        $nomusers = strip_tags($_POST['formnom']);
+        if(!filter_var($_POST['formmail'], FILTER_VALIDATE_EMAIL)){
+            die('email invalide');
+            header ('Location: index.php');
+        }else{
+            $mailusers = $_POST['formmail'];
+        }
+        //On verifie que les mots de pass sont identiques
+        if($_POST['formpass'] != $_POST['formpassverif']){
+            die('Mots de pass différents');
+            header('Location: index.php');
+        }else{
+            // On chiffre le mdp
+            $passusers = password_hash($_POST['formpass'], PASSWORD_ARGON2ID);
+        }
+        
+        // On ecrit la requete
+        $sql = "INSERT INTO `users` (`email`, `password`, `nickname`) VALUES (:mailusers, :password, :nomusers); ";
+        
+        // On prépare la requête
+        $query = $db->prepare($sql);
 
+        // On injecte les valeurs dans les paramètres
+        $query->bindValue(':nomusers', $nomusers, PDO::PARAM_STR);;
+        $query->bindValue(':mailusers', $mailusers, PDO::PARAM_STR);;
+        $query->bindValue(':password', $passusers, PDO::PARAM_STR);;
+
+
+
+        // On execute la requête
+        $query->execute();
+    }else{
+        // Au moins 1 champs est invalide
+        $erreur = 'Le formulaire est incomplet';
+        echo "<p>$erreur</p>";
+    }
+    
+ 
+}
+
+
+$sql = 'SELECT * FROM `users`;';
+
+// On exécute notre requête
 $query = $db->query($sql);
 
-$articles = $query->fetchAll(PDO::FETCH_ASSOC);
+// On récupere les données
+$liste = $query->fetchall(PDO::FETCH_ASSOC);
+
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Blog</title>
+    <title>Utilisateurs</title>
 </head>
+
 <body>
-    
-<?php foreach($articles as $article): ?>
-
-<h1> <?= $article['title'] ?> </h1>
-<h2> <?= $article['nickname'] ?> </h2>
-<h3> <?= $article['created_at'] ?> </h3>
-<p> <?= $article['content'] ?> </p>
-
-<?php endforeach; ?>
-
-
-
-</body>
-</html>
-
+    <table>
+        <h1>Liste des utilisateurs</h1>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Pseudo</th>
+                <th>eMail</th>
+                <th>Pass</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
             foreach($liste as $user):
         ?>
             <tr>
@@ -78,9 +130,3 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 </body>
 
 </html>
-
-
-<th>Titre</th>
-                <th>Auteur</th>
-                <th>Date</th>
-                <th>Contenu</th>
