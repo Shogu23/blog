@@ -6,7 +6,7 @@ require_once 'inc/connect.php';
 // Si tu veux ne selectionner que certaines parties a afficher
 $sql = "SELECT a.*, c.`name`, u.`nickname` FROM `articles` a 
         LEFT JOIN `categories` c ON a.`categories_id` = c.`id` 
-        LEFT JOIN `users` u ON a.`users_id` = u.`id`";
+        LEFT JOIN `users` u ON a.`users_id` = u.`id` ORDER BY a.`created_at` desc;";
 
 $query = $db->query($sql);
 
@@ -25,10 +25,10 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
     
 <?php foreach($articles as $article): ?>
 
-<h1> <?= $article['title'] ?> </h1>
+<h1> <a href="articles.php?id=<?= $article['id'] ?>"><?= $article['title'] ?></a> </h1>
 <h2> <?= $article['nickname'] ?> </h2>
 <h3> <?= "Catégorie ".$article['name']." le ".formatDate($article['created_at']) ?> </h3>
-<p> <?= mb_strimwidth($article['content'], 0, 20, "..."); ?> </p>
+<p> <?= extrait($article['content'], 150) ?> </p>
 
 <?php endforeach; ?>
 

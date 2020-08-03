@@ -1,6 +1,8 @@
 <?php
 session_start(); // ON DEMARRE TOUJOURS LA SESSION EN PREMIER
 
+require_once 'functions.php';
+
 define('URL', 'http://localhost/blog');
 
 if(isset($_SESSION['user'])){
@@ -9,5 +11,4 @@ if(isset($_SESSION['user'])){
     echo '<a href="'.URL.'/utilisateurs/connexion.php">Connexion</a> - <a href="'.URL.'/utilisateurs/index.php">Inscription</a>'; 
 }
 
-require_once 'inc/functions.php';
 

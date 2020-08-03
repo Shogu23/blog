@@ -5,7 +5,6 @@ require_once '../inc/connect.php';
 
 // Transforme une STRING ( chaine de carac "json" en tableau PHP )
 
-
 if(!isset($_SESSION['user'])){
     header('Location:'.URL.'/utilisateurs/connexion.php');
 }
@@ -22,6 +21,8 @@ $query = $db->query($sql);
 $categories = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
+
+
 // POST n'est pas vide, on vérifie TOUS les champs obligatoires
 if(!empty($_POST)){
     if(
@@ -30,10 +31,30 @@ if(!empty($_POST)){
         && isset($_POST['formcat']) && !empty($_POST['formcat'])
         )        
     ){
-        //TOUS les champs sont valides (strip_tags() = No balises, htmlspechar = no <>, htmlentities = no <> no "" )
+        // On récupere et on nettoie les données
         $arttitre = strip_tags($_POST['formtitre']);
         $artcontent = htmlspecialchars($_POST['formcontent']);
         
+        // On récupère et on stocke l'image si elle existe
+        if(isset($_FILES['image']) && !empty($_FILES['image'])){
+            // On vérifie qu'on n'a pas d'erreur
+            if($_FILES['image']['error'] != UPLOAD_ERR_OK){
+                header('Location: index.php');
+                exit;
+            }
+
+            // On génère un nouveau nom de fichier
+            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $nomImage = md5(uniqid()).'.'.$extension;
+            
+            // On transfère le fichier (le moveupload ( fichier source, fichier destination))
+            if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$nomImage))
+            {
+                // Transfert échoué
+                header('Location: ajout.php');
+            }
+        }
+           
 
         // On ecrit la requete
         $sql = "INSERT INTO `articles` (`title`, `content`, `users_id`, `categories_id`) VALUES (:arttitre, :artcontent, :user, :artcat);";
@@ -71,7 +92,7 @@ if(!empty($_POST)){
     <title>Document</title>
 </head>
 <body>
-<form style="justify-content: center;" method="post">
+<form style="justify-content: center;" enctype="multipart/form-data" method="post">
         <h2>Ajouter un article</h2>
         <div>
             <label for="Title">Titre</label>
@@ -92,8 +113,10 @@ if(!empty($_POST)){
                 <option value="<?= $categorie['id'] ?>"><?= $categorie['name'] ?></option>
             <?php endforeach; ?>  
             </select>
-            
-            
+        </div>
+        <div>
+            <label for="image">Image : </label>
+            <input type="file" name="image" id="image" accept="image/png, image/jpeg">
         </div>
         <div>
             <button>Ajouter</button>
