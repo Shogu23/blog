@@ -27,11 +27,10 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <h1> <?= $article['title'] ?> </h1>
 <h2> <?= $article['nickname'] ?> </h2>
-<h3> <?= $article['created_at'] ?> </h3>
-<p> <?= $article['content'] ?> </p>
+<h3> <?= "Catégorie ".$article['name']." le ".formatDate($article['created_at']) ?> </h3>
+<p> <?= mb_strimwidth($article['content'], 0, 20, "..."); ?> </p>
 
 <?php endforeach; ?>
-
 
 
 </body>

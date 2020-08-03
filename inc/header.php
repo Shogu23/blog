@@ -9,5 +9,5 @@ if(isset($_SESSION['user'])){
     echo '<a href="'.URL.'/utilisateurs/connexion.php">Connexion</a> - <a href="'.URL.'/utilisateurs/index.php">Inscription</a>'; 
 }
 
-
+require_once 'inc/functions.php';
 
