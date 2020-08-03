@@ -47,12 +47,43 @@ if(!empty($_POST)){
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $nomImage = md5(uniqid()).'.'.$extension;
             
+            // Je vérifie la taille de l'image
+            if ($_FILES['image']['size'] > 500000){
+                header('Location: index.php');
+                exit("Fichier trop volumineux.");
+            }
+            
+            // Vérif du format
+            $type_file = $_FILES['image']['type'];
+            if( !strstr($type_file, 'jpg') && !strstr($type_file, 'jpeg') && !strstr($type_file, 'png') )
+            {
+                header('Location: index.php');
+                exit("Hein hein hein Mauvais fichier.");
+            }
+            
+
+            // Vérif extension!
+            $goodExtensions = array('jpg', 'jpeg', 'png');
+            if (!in_array($extension, $goodExtensions)){
+                header('Location: index.php');
+                exit("Désolé, only JPG, JPEG, PNG le reste c'est mort.");
+            }
+            
+
+            
+
+
+
+
             // On transfère le fichier (le moveupload ( fichier source, fichier destination))
             if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$nomImage))
             {
                 // Transfert échoué
-                header('Location: ajout.php');
+                header('Location: index.php');
             }
+
+
+
         }
            
 
