@@ -21,8 +21,6 @@ $query = $db->query($sql);
 $categories = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-
-
 // POST n'est pas vide, on vérifie TOUS les champs obligatoires
 if(!empty($_POST)){
     if(
@@ -34,9 +32,12 @@ if(!empty($_POST)){
         // On récupere et on nettoie les données
         $arttitre = strip_tags($_POST['formtitre']);
         $artcontent = htmlspecialchars($_POST['formcontent']);
-        
+        $nomImage = null;
+
         // On récupère et on stocke l'image si elle existe
-        if(isset($_FILES['image']) && !empty($_FILES['image'])){
+        if(
+            isset($_FILES['image']) && !empty($_FILES['image']) && $_FILES['image']['error'] != UPLOAD_ERR_NO_FILE)
+            {
             // On vérifie qu'on n'a pas d'erreur
             if($_FILES['image']['error'] != UPLOAD_ERR_OK){
                 header('Location: index.php');
@@ -47,40 +48,53 @@ if(!empty($_POST)){
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $nomImage = md5(uniqid()).'.'.$extension;
             
-            // Je vérifie la taille de l'image
-            if ($_FILES['image']['size'] > 500000){
-                header('Location: index.php');
+            $goodExtensions = ['jpg', 'jpeg', 'jif', 'jfif', 'pjpeg', 'pjp', 'png'];
+            $typemime = ['image/jpeg', 'image/png'];
+            $type_file = $_FILES['image']['type'];
+
+            // Je vérifie la taille de l'image ( limite a 1Mo ( 1024x1024))
+            if ($_FILES['image']['size'] > 1048576){
                 exit("Fichier trop volumineux.");
             }
             
-            // Vérif du format
-            $type_file = $_FILES['image']['type'];
-            if( !strstr($type_file, 'jpg') && !strstr($type_file, 'jpeg') && !strstr($type_file, 'png') )
+            // Vérif extension!            
+            if (!in_array($extension, $goodExtensions) || !in_array($type_file, $typemime))
             {
-                header('Location: index.php');
-                exit("Hein hein hein Mauvais fichier.");
-            }
-            
-
-            // Vérif extension!
-            $goodExtensions = array('jpg', 'jpeg', 'png');
-            if (!in_array($extension, $goodExtensions)){
-                header('Location: index.php');
                 exit("Désolé, only JPG, JPEG, PNG le reste c'est mort.");
             }
-            
-
-            
-
-
-
-
+                    
             // On transfère le fichier (le moveupload ( fichier source, fichier destination))
             if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$nomImage))
             {
                 // Transfert échoué
                 header('Location: index.php');
             }
+            
+            $fichierIMG = $_FILES['image']['tmp_name'];
+
+            $tailleSource = getimagesize($fichierIMG);
+
+            $image_type = $tailleSource[2]; 
+
+            if( $image_type == IMAGETYPE_JPEG ) {   
+            $imageSource = imagecreatefromjpeg($fichierIMG);  
+            $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
+            imagejpeg($imgResize,$_FILES['image']['name'] . "_thump.jpg");
+            }
+
+            elseif( $image_type == IMAGETYPE_PNG ) {
+            $imageSource = imagecreatefrompng($fichierIMG); 
+            $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
+            imagepng($imgResize,$_FILES['image']['name'] . "_thump.png");
+            }
+
+            function redimension($imageSource,$width,$height) {
+                $img_width =200;
+                $img_height =200;
+                $imgResize=imagecreatetruecolor($img_width,$img_height);
+                imagecopyresampled($imgResize,$imageSource,0,0,0,0,$img_width,$img_height, $width,$height);
+                return $imgResize;
+                }
 
 
 
@@ -88,7 +102,8 @@ if(!empty($_POST)){
            
 
         // On ecrit la requete
-        $sql = "INSERT INTO `articles` (`title`, `content`, `users_id`, `categories_id`) VALUES (:arttitre, :artcontent, :user, :artcat);";
+        $sql = "INSERT INTO `articles` (`title`, `content`, `users_id`, `categories_id`, `featured_image`) 
+                VALUES (:arttitre, :artcontent, :user, :artcat, :nomimage);";
         
         // On prépare la requête
         $query = $db->prepare($sql);
@@ -98,6 +113,7 @@ if(!empty($_POST)){
         $query->bindValue(':artcontent', $artcontent, PDO::PARAM_STR);
         $query->bindValue(':artcat', $_POST['formcat'], PDO::PARAM_INT);
         $query->bindValue(':user', $_SESSION['user']['id'], PDO::PARAM_INT);
+        $query->bindValue(':nomimage', $nomImage, PDO::PARAM_STR);
         
         // On execute la requête
         $query->execute();
@@ -108,9 +124,8 @@ if(!empty($_POST)){
         // Au moins 1 champs est invalide
         $erreur = "Le formulaire est incomplet";
     }
- 
-}
 
+}
 
 ?>
 

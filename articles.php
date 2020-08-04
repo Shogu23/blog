@@ -56,6 +56,9 @@ if(isset($_GET['id']) && !empty($_GET['id'])){
         <p class="lead">Par <?= $article['nickname'] ?> dans <?= "Catégorie ".$article['name']." le ".formatDate($article['created_at']) ?></p>
         <hr class="my-4">
         <p><?= $article['content'] ?></p>
+        <?php if(!is_null($article['featured_image'])): ?>
+            <p><img src="<?= URL . '/uploads/' . $article['featured_image'] ?>" alt="<?= $article['nickname'] ?>"></p>
+        <?php endif; ?>
     </div>
 
 
