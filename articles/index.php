@@ -92,7 +92,18 @@ if(!empty($_POST)){
                 $img_width =200;
                 $img_height =200;
                 $imgResize=imagecreatetruecolor($img_width,$img_height);
-                imagecopyresampled($imgResize,$imageSource,0,0,0,0,$img_width,$img_height, $width,$height);
+                imagecopyresampled(
+                    $imgResize,
+                    $imageSource,
+                    0,
+                    0,
+                    0,
+                    0,
+                    $img_width,
+                    $img_height,
+                    $width,
+                    $height
+                );
                 return $imgResize;
                 }
 
