@@ -76,16 +76,16 @@ if(!empty($_POST)){
 
             $image_type = $tailleSource[2]; 
 
-            if( $image_type == IMAGETYPE_JPEG ) {   
-            $imageSource = imagecreatefromjpeg($fichierIMG);  
+            if( $image_type == IMAGETYPE_JPEG ) {
+            $imageSource = imagecreatefromjpeg($fichierIMG);
             $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
-            imagejpeg($imgResize,$_FILES['image']['name'] . "_thump.jpg");
+            imagejpeg($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.jpg");
             }
 
             elseif( $image_type == IMAGETYPE_PNG ) {
-            $imageSource = imagecreatefrompng($fichierIMG); 
+            $imageSource = imagecreatefrompng($fichierIMG);
             $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
-            imagepng($imgResize,$_FILES['image']['name'] . "_thump.png");
+            imagepng($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.png");
             }
 
             function redimension($imageSource,$width,$height) {

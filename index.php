@@ -27,7 +27,7 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <h1> <a href="articles.php?id=<?= $article['id'] ?>"><?= $article['title'] ?></a> </h1>
 <?php if(!is_null($article['featured_image'])): ?>
-    <p><img src="<?= URL . '/uploads/' . $article['featured_image']. "_thump.jpg" ?>" alt="<?= $article['nickname'] ?>"></p>
+    <p><img src="<?= URL . '/uploads/' . $article['featured_image']. "_tmb.jpg" ?>" alt="<?= $article['nickname'] ?>"></p>
 <?php endif; ?>
 <h2> <?= $article['nickname'] ?> </h2>
 <h3> <?= "Catégorie ".$article['name']." le ".formatDate($article['created_at']) ?> </h3>
