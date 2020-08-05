@@ -50,7 +50,9 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 
     <h6 class="card-subtitle mb-2 text-muted"> <?= $article['nickname'] ?></h6>
 
-    <h6 class="card-subtitle mb-2 text-muted"> <?= "Catégorie ".$article['name']." le ".formatDate($article['created_at']) ?></h6>
+    <h6 class="card-subtitle mb-2 text-muted"> <?= "Catégorie ".$article['name'] ?></h6>
+
+    <h6 class="card-subtitle mb-2 text-muted"> <?= "Le".formatDate($article['created_at']) ?></h6>
 
     <p class="card-text"><?= extrait($article['content'], 150) ?></p>
     <a href="#" class="btn btn-primary">Modifier</a>

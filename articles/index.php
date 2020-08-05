@@ -1,22 +1,7 @@
 <?php
 require_once '../inc/header.php';
-
 require_once '../inc/connect.php';
-
-// j'ajoute la nav
 require_once '../inc/nav.php';
-
-$_SESSION['msgUpload'] = "Erreur lors de l'upload..";
-
-$_SESSION['msgSize'] = "Fichier trop volumineux.";
-
-$_SESSION['msgExt'] = "Désolé, only JPG, JPEG, PNG le reste c'est mort.";
-
-$_SESSION['msgError'] = "Erreur lors du transfert vers le dossier de destination";
-
-
-
-
 
 
 // Transforme une STRING ( chaine de carac "json" en tableau PHP )
@@ -24,10 +9,11 @@ $_SESSION['msgError'] = "Erreur lors du transfert vers le dossier de destination
 if(!isset($_SESSION['user'])){
     header('Location:'.URL.'/utilisateurs/connexion.php');
 }
-$roles = json_decode($_SESSION['user']['roles']);
+$roles = json_decode($_SESSION['user']['roles']);  // On json_decode car 'user''roles' viens de la DB et est en json.
 if(!in_array("ROLE_ADMIN", $roles)){
         header('Location:'.URL);
 }
+
 
 
 $sql = "SELECT * FROM `categories` ORDER BY `name` ASC";
@@ -39,6 +25,9 @@ $categories = $query->fetchAll(PDO::FETCH_ASSOC);
 
 // POST n'est pas vide, on vérifie TOUS les champs obligatoires
 if(!empty($_POST)){
+    // J'enregistre le POST de mon formulaire dans $_SESSION
+    $_SESSION['form'] = $_POST;
+
     if(
         isset($_POST['formtitre']) && !empty($_POST['formtitre'])
         && isset($_POST['formcontent']) && !empty($_POST['formcontent']
@@ -56,7 +45,8 @@ if(!empty($_POST)){
             {
             // On vérifie qu'on n'a pas d'erreur
             if($_FILES['image']['error'] != UPLOAD_ERR_OK){
-                echo $_SESSION['msgUpload'];
+                // On ajoute un message de session
+                $_SESSION['message'][] = "Une erreur est survenue lors du transfert de fichier";
             }
 
             // On génère un nouveau nom de fichier
@@ -67,22 +57,30 @@ if(!empty($_POST)){
             $typemime = ['image/jpeg', 'image/png'];
             $type_file = $_FILES['image']['type'];
 
-            // Je vérifie la taille de l'image ( limite a 1Mo ( 1024x1024))
-            if ($_FILES['image']['size'] > 1048576){
-                echo $_SESSION['msgSize'];
-            }
-            
             // Vérif extension!            
             if (!in_array(strtolower($extension), $goodExtensions) || !in_array($type_file, $typemime))
             {
-                echo $_SESSION['msgExt'];
+                $_SESSION['message'][] = "Désolé, only JPG, JPEG, PNG ou meme type, le reste c'est mort.";
             }
-                    
+            
+            // Je vérifie la taille de l'image ( limite a 1Mo ( 1024x1024))
+            if ($_FILES['image']['size'] > 1048576){
+                $_SESSION['message'][] = "Fichier trop volumineux, 1Mo max.";
+            }
+
+            if(isset($_SESSION['message']) && !empty($_SESSION['message'])){
+                // Si au moins une erreur, on redirige vers le formulaire
+                header('Location: index.php');
+                exit;
+            }
+            
             // On transfère le fichier (le moveupload ( fichier source, fichier destination))
             if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$nomImage))
             {
                 // Transfert échoué
-                echo $_SESSION['msgError'];
+                $_SESSION['message'][] = "Erreur lors du transfert vers le dossier de destination";
+                header('Location: index.php');
+                exit;
             }
             
             mini(__DIR__.'/../uploads/'.$nomImage, 200);
@@ -112,7 +110,8 @@ if(!empty($_POST)){
         exit;
     }else{
         // Au moins 1 champs est invalide
-        $erreur = "Le formulaire est incomplet";
+        $_SESSION['message'][] = "Le formulaire est incomplet";
+
     }
 
 }
@@ -122,32 +121,42 @@ if(!empty($_POST)){
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
-<form style="justify-content: center;" enctype="multipart/form-data" method="post">
+    <form style="justify-content: center;" enctype="multipart/form-data" method="post">
         <h2>Ajouter un article</h2>
         <div>
             <label for="Title">Titre</label>
-            <input type="text" id="Title" name="formtitre">
+            <input type="text" id="Title" name="formtitre"
+                value="<?= isset($_SESSION['form']['formtitre']) ? $_SESSION['form']['formtitre'] : "" ?>">
         </div>
         <div>
             <label for="Content">Contenu</label>
-            <textarea id="Content" name="formcontent" style="resize: none;" rows="10" cols="30">
-
-            </textarea> 
+            <textarea id="Content" name="formcontent" style="resize: none;" rows="10"
+                cols="30"><?= !empty($_SESSION['form']['formcontent']) ? $_SESSION['form']['formcontent'] : "" ?></textarea>
         </div>
         <div>
             <label for="Categorie">Catégorie</label>
             <select id="Categorie" name="formcat" required>
-            
-                <option selected="selected" disabled="disabled">Choisir une catégorie</option>
+
+                <option value="">-- Choisir une catégorie --</option>
                 <?php foreach($categories as $categorie): ?>
-                <option value="<?= $categorie['id'] ?>"><?= $categorie['name'] ?></option>
-            <?php endforeach; ?>  
+                <option value="<?= $categorie['id'] ?>" <?php
+                    if(isset($_SESSION['form']['formcat']) && $_SESSION['form']['formcat'] == $categorie['id'])
+                    {
+                        echo "selected";
+                    }
+                ?>>
+
+
+                    <?= $categorie['name'] ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div>
@@ -157,6 +166,14 @@ if(!empty($_POST)){
         <div>
             <button>Ajouter</button>
         </div>
+        <?php if(isset($_SESSION['message']) && !empty($_SESSION['message'])): 
+            foreach($_SESSION['message'] as $message): ?>
+        <div>
+            <p><?= $message ?></p>
+        </div>
+        <?php endforeach; unset($_SESSION['message']); endif; ?>
     </form>
+    <?php unset($_SESSION['form']); ?>
 </body>
+
 </html>

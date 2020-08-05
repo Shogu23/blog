@@ -10,6 +10,7 @@ if(isset($_GET['id']) && !empty($_GET['id'])){
     // On a un id, on va chercher la category dans la base
     // On se connecte
     require_once '../inc/connect.php';
+    
     $sql = "SELECT * FROM `categories` WHERE `id` = :id";
 
     // On prepare la requete

@@ -31,8 +31,6 @@ if(isset($_GET['id']) && !empty($_GET['id'])){
     // Ici $user contient un enregistrement de la base de données
     // On vérifie que POST contient des données
 
-
-//On ajoute le nouveau client, AVANT d'aller chercher la liste ( le $sql = SELECT.... juste apres)
 if(!empty($_POST)){
     // POST n'est pas vide, on vérifie TOUS les champs obligatoires
     if(
