@@ -3,6 +3,8 @@
 
 require_once 'inc/header.php';
 
+require_once 'inc/nav.php';
+
 // On vérifie si on a un id dans l'URL
 if(isset($_GET['id']) && !empty($_GET['id'])){
 

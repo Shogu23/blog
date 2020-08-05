@@ -3,6 +3,22 @@ require_once '../inc/header.php';
 
 require_once '../inc/connect.php';
 
+// j'ajoute la nav
+require_once '../inc/nav.php';
+
+$_SESSION['msgUpload'] = "Erreur lors de l'upload..";
+
+$_SESSION['msgSize'] = "Fichier trop volumineux.";
+
+$_SESSION['msgExt'] = "Désolé, only JPG, JPEG, PNG le reste c'est mort.";
+
+$_SESSION['msgError'] = "Erreur lors du transfert vers le dossier de destination";
+
+
+
+
+
+
 // Transforme une STRING ( chaine de carac "json" en tableau PHP )
 
 if(!isset($_SESSION['user'])){
@@ -40,8 +56,7 @@ if(!empty($_POST)){
             {
             // On vérifie qu'on n'a pas d'erreur
             if($_FILES['image']['error'] != UPLOAD_ERR_OK){
-                header('Location: index.php');
-                exit;
+                echo $_SESSION['msgUpload'];
             }
 
             // On génère un nouveau nom de fichier
@@ -54,61 +69,24 @@ if(!empty($_POST)){
 
             // Je vérifie la taille de l'image ( limite a 1Mo ( 1024x1024))
             if ($_FILES['image']['size'] > 1048576){
-                exit("Fichier trop volumineux.");
+                echo $_SESSION['msgSize'];
             }
             
             // Vérif extension!            
-            if (!in_array($extension, $goodExtensions) || !in_array($type_file, $typemime))
+            if (!in_array(strtolower($extension), $goodExtensions) || !in_array($type_file, $typemime))
             {
-                exit("Désolé, only JPG, JPEG, PNG le reste c'est mort.");
+                echo $_SESSION['msgExt'];
             }
                     
             // On transfère le fichier (le moveupload ( fichier source, fichier destination))
             if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$nomImage))
             {
                 // Transfert échoué
-                header('Location: index.php');
+                echo $_SESSION['msgError'];
             }
             
-            $fichierIMG = $_FILES['image']['tmp_name'];
-
-            $tailleSource = getimagesize($fichierIMG);
-
-            $image_type = $tailleSource[2]; 
-
-            if( $image_type == IMAGETYPE_JPEG ) {
-            $imageSource = imagecreatefromjpeg($fichierIMG);
-            $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
-            imagejpeg($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.jpg");
-            }
-
-            elseif( $image_type == IMAGETYPE_PNG ) {
-            $imageSource = imagecreatefrompng($fichierIMG);
-            $imgResize = redimension($imageSource,$tailleSource[0],$tailleSource[1]);
-            imagepng($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.png");
-            }
-
-            function redimension($imageSource,$width,$height) {
-                $img_width =200;
-                $img_height =200;
-                $imgResize=imagecreatetruecolor($img_width,$img_height);
-                imagecopyresampled(
-                    $imgResize,
-                    $imageSource,
-                    0,
-                    0,
-                    0,
-                    0,
-                    $img_width,
-                    $img_height,
-                    $width,
-                    $height
-                );
-                return $imgResize;
-                }
-
-
-
+            mini(__DIR__.'/../uploads/'.$nomImage, 200);
+            mini(__DIR__.'/../uploads/'.$nomImage, 300);    
         }
            
 
@@ -128,6 +106,7 @@ if(!empty($_POST)){
         
         // On execute la requête
         $query->execute();
+
 
         header('Location:'.URL);
         exit;

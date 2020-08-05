@@ -3,6 +3,9 @@ require_once '../inc/header.php';
 // On se connecte a la base de données
 require_once '../inc/connect.php';
 
+// j'ajoute la nav
+require_once '../inc/nav.php';
+
 //On ajoute le nouveau client, AVANT d'aller chercher la liste ( le $sql = SELECT.... juste apres)
 if(!empty($_POST)){
     // POST n'est pas vide, on vérifie TOUS les champs obligatoires

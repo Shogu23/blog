@@ -49,43 +49,11 @@ function extrait(string $texte, int $longueur): string
  * @param integer $taille Taille en pixels
  * @return boolean
  */
-function mini($fichier, $taille): bool
+function mini(string $fichier, int $taille): bool 
 {
-//    $imgHauteur = ???;
-//    $imgLargeur = ???;
-
-//    $image = $_FILES['image']['tmp_name'];
-
-//    $nomComplet = __DIR__ . '/../uploads/' . $image;
-
-//    $dimensions = getimagesize($nomComplet);
-
-//    if( $image_type == IMAGETYPE_JPEG ) {
-//             $imageSource = imagecreatefromjpeg($nomComplet);
-//             $imgResize = redimension($imageSource,$dimensions[0],$dimensions[1]);
-//             imagejpeg($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.jpg");
-//             }
-
-//             elseif( $image_type == IMAGETYPE_PNG ) {
-//             $imageSource = imagecreatefrompng($nomComplet);
-//             $imgResize = redimension($imageSource,$dimensions[0],$dimensions[1]);
-//             imagepng($imgResize,__DIR__ . '/../uploads/'.$_FILES['image']['name'] . "_tmb.png");
-//             }
-
-    // On vérifie le type Mime de l'image
-    switch($dimensions['mime'])
-    {
-        case 'image/png':
-            $imageTemp = imagecreatefrompng($nomComplet);
-            break;
-        
-        case 'image/jpeg':
-            $imageTemp = imagecreatefromjpeg($nomComplet);
-    }
-    // Créer une miniature carré
+    $dimensions = getimagesize($fichier);
 
     // On définit l'orientation et les décalages qui en découlent
-
     // On initialise les décalages
     $decalageX = $delacageY = 0;
 
@@ -104,11 +72,26 @@ function mini($fichier, $taille): bool
             $tailleCarre = $dimensions[1];
             $decalageX = ($dimensions[0] - $tailleCarre) / 2;
     }
-    // tailleCarre = suivant le dessin correspond a HauteCarré ou LargeurCarré
+    // tailleCarre = suivant le dessin correspond a HauteCarré ou   LargeurCarré
 
+        // On vérifie le type Mime de l'image
+        switch($dimensions['mime'])
+        {
+            case 'image/png':
+                $imageTemp = imagecreatefrompng($fichier);
+                break;
+            
+            case 'image/jpeg':
+                $imageTemp = imagecreatefromjpeg($fichier);
+                break;
+
+            default:
+                return false;
+        }
+    
 
     // On crée une image temporaire en mémoire pour créer la copie
-    $imageDest = imagecreatetruecolor(300, 300);
+    $imageDest = imagecreatetruecolor($taille, $taille);
 
     // On copie la totalité de l'image source dans l'image de destination
     imagecopyresampled(
@@ -118,20 +101,39 @@ function mini($fichier, $taille): bool
         0, // Point supérieur de la zone de "collage"
         $decalageX, // Point gauche de la zone de "copie"
         $decalageY, // Point supérieur de la zone de "copie"
-        300, // Largeur de la zone de "collage"
-        300, // Hauteur de la zone de "collage"
+        $taille, // Largeur de la zone de "collage"
+        $taille, // Hauteur de la zone de "collage"
         $tailleCarre, // Largeur de la zone de "copie"
         $tailleCarre // Hauteur de la zone de "copie"
     );
+
+    // On démonte le nom de fichier
+    $chemin = pathinfo($fichier, PATHINFO_DIRNAME);
+    $nomFichier = pathinfo($fichier, PATHINFO_FILENAME);
+    $extension = pathinfo($fichier, PATHINFO_EXTENSION);
+
+    $nouveauFichier = "$chemin/$nomFichier-{$taille}x$taille.$extension";
+
 
     // On enregistre l'image sur le disque
     switch($dimensions['mime'])
     {
         case 'image/png':
-            imagepng($imageDest, __DIR__.'/images/mini.png');
+            imagepng($imageDest, $nouveauFichier);
             break;
         
         case 'image/jpeg':
-            imagejpeg($imageDest, __DIR__.'/images/mini.jpeg');
+            imagejpeg($imageDest, $nouveauFichier);
     }
+
+    // On detruit les images en mémoire
+    imagedestroy($imageDest);
+    imagedestroy($imageTemp);
+
+    return true;
+
 }
+
+
+
+
