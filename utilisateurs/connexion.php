@@ -104,6 +104,9 @@ if(!empty($_POST)){
                 <label for="Passwrd">Mot de passe?</label>
                 <input type="password" id="Passwrd" name="formpass" class="form-control">
             </div>
+            <p>
+                <a href="oublie-pass.php">Mdp oublié</a>
+            </p>
             <button type="submit" class="btn btn-primary">Sign in</button>
         </form>
 

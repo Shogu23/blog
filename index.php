@@ -31,6 +31,16 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
+    
+  <?php if(isset($_SESSION['message']) && !empty($_SESSION['message'])): 
+            foreach($_SESSION['message'] as $message): ?>
+        <div>
+            <p><?= $message ?></p>
+        </div>
+        <?php endforeach; 
+                unset($_SESSION['message']); 
+                  endif; ?>
+                  
     <div class="container">
         <div class="row">
             <?php foreach($articles as $article): ?>

@@ -1,7 +1,11 @@
 <?php
+
+use PHPMailer\PHPMailer\Exception;
+
 require_once '../inc/header.php';
-require_once '../inc/connect.php';
 require_once '../inc/nav.php';
+
+
 
 
 // Transforme une STRING ( chaine de carac "json" en tableau PHP )
@@ -14,7 +18,7 @@ if(!in_array("ROLE_ADMIN", $roles)){
         header('Location:'.URL);
 }
 
-
+require_once '../inc/connect.php';
 
 $sql = "SELECT * FROM `categories` ORDER BY `name` ASC";
 
@@ -105,6 +109,38 @@ if(!empty($_POST)){
         // On execute la requête
         $query->execute();
 
+        require_once '../inc/config-mail.php';
+        
+        // Ce fichier enverra un mail dès son chargement
+        try{
+            // On définit l'expéditeur du mail
+            $sendmail->setFrom('no-reply@mondommaine.fr', 'Blog');
+
+            // On définit le/les destinataire(s)
+            $sendmail->addAddress('admin@mondomaine.fr', 'Admin');
+
+            // On définit le sujet du mail
+            $sendmail->Subject = 'Un article à été ajouté';
+
+            // On active le HTML
+            $sendmail->isHTML();
+
+            // On écrit le contenu du mail
+            // En HTML
+            $sendmail->Body = "<h1>Message de Blog</h1>
+                               <p>L'article \"$arttitre\" viens d'être ajouté par {$_SESSION['user']['nickname']}</p>";
+
+            // En texte brut
+            $sendmail->AltBody = "L'article \"$arttitre\" viens d'être ajouté par {$_SESSION['user']['nickname']}";
+
+            // On envoie le mail
+            $sendmail->send();
+            // echo "Mail envoyé";
+
+        }catch(Exception $e){
+            // Ici le mail n'est pas parti
+            echo 'Erreur : ' . $e->errorMessage();
+        }
 
         header('Location:'.URL);
         exit;
@@ -113,6 +149,7 @@ if(!empty($_POST)){
         $_SESSION['message'][] = "Le formulaire est incomplet";
 
     }
+    
 
 }
 
@@ -171,7 +208,9 @@ if(!empty($_POST)){
         <div>
             <p><?= $message ?></p>
         </div>
-        <?php endforeach; unset($_SESSION['message']); endif; ?>
+        <?php endforeach; 
+                unset($_SESSION['message']); 
+                  endif; ?>
     </form>
     <?php unset($_SESSION['form']); ?>
 </body>
