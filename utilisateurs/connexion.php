@@ -93,6 +93,15 @@ if(!empty($_POST)){
 </head>
 
 <body>
+    <?php if(isset($_SESSION['message']) && !empty($_SESSION['message'])): 
+            foreach($_SESSION['message'] as $message): ?>
+        <div>
+            <p><?= $message ?></p>
+        </div>
+        <?php endforeach; 
+                unset($_SESSION['message']); 
+                  endif; ?>
+
     <h1>Veuillez vous connecter?</h1>
     <div class="container col-5 border border-primary">
         <form method="post">
