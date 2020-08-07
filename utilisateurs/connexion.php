@@ -33,23 +33,47 @@ if(!empty($_POST)){
         $query->execute();
 
         // On récupere les données
-        $liste = $query->fetch(PDO::FETCH_ASSOC);
+        $user = $query->fetch(PDO::FETCH_ASSOC);
         
-        if(!$liste){
+        if(!$user){
             die('Email et/ou mdp incorrect');
         } 
 
-        if(password_verify($_POST['formpass'], $liste['password'])){
-          
-                    
-          $_SESSION['user'] = [
-              'id' => $liste['id'],
-              'nickname' => $liste['nickname'],
-              'email' => $liste['email'],
-              'roles' => $liste['roles'],
-          ];
-            header('Location: index.php');
+        if(password_verify($_POST['formpass'], $user['password'])){
             
+            // On ouvre la session
+            $_SESSION['user'] = [
+              'id' => $user['id'],
+              'nickname' => $user['nickname'],
+              'email' => $user['email'],
+              'roles' => $user['roles'],
+            ];
+            
+            // On vérifie si la case est cochée
+            if(isset($_POST['remember']) && $_POST['remember'] == true){
+                // La case a été cochée
+                // On génère un token
+                $token = md5(uniqid());
+                $expiration = date('Y-m-d H:i:s', strtotime("+1 year"));
+        
+                // On écrit la requête / On le stock en base
+                $sql = "UPDATE `users` 
+                        SET `remember_token` = '$token' 
+                        WHERE `id` = '{$user['id']}' ";
+ 
+                $query = $db->query($sql);
+
+                // On le stock dans un cookie
+                setcookie('remember', $token,
+                [
+                    'samesite' => 'Strict',
+                    'expires' => strtotime('+1 year'),
+                    'path' => '/blog'
+                ]);
+
+            }
+
+            header('Location: ' . URL);
           
         }else{
             echo "Email et / ou mdp incorrect";
@@ -62,17 +86,7 @@ if(!empty($_POST)){
  
 }
 
-
-
-
-
 ?>
-
-
-
-
-
-
 
 
 
@@ -95,10 +109,10 @@ if(!empty($_POST)){
 <body>
     <?php if(isset($_SESSION['message']) && !empty($_SESSION['message'])): 
             foreach($_SESSION['message'] as $message): ?>
-        <div>
-            <p><?= $message ?></p>
-        </div>
-        <?php endforeach; 
+    <div>
+        <p><?= $message ?></p>
+    </div>
+    <?php endforeach; 
                 unset($_SESSION['message']); 
                   endif; ?>
 
@@ -113,6 +127,11 @@ if(!empty($_POST)){
                 <label for="Passwrd">Mot de passe?</label>
                 <input type="password" id="Passwrd" name="formpass" class="form-control">
             </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="remember">
+                <label class="form-check-label" for="remember" name="remember">Remember me?</label>
+            </div>
+
             <p>
                 <a href="oublie-pass.php">Mdp oublié</a>
             </p>
