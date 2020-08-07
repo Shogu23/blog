@@ -35,7 +35,11 @@ if(isset($_COOKIE['remember']) && !empty($_COOKIE['remember'])){
             ];
     }else{
         // On supprime le cookie
-        setcookie('remember', '', 1);
+        setcookie('remember', '', 
+        [
+            'path' => '/blog',
+            'expires' => 1
+        ]);
     }
 
     
